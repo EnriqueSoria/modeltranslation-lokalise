@@ -19,7 +19,7 @@ class WhitelistIPPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         whitelisted_ips = self.get_whitelisted_ips()
 
-        if whitelisted_ips == '*':
+        if whitelisted_ips in ('*', ['*']):
             return True
 
         return self.get_ip(request) in whitelisted_ips
