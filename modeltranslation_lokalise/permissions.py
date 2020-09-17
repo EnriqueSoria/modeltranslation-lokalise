@@ -7,23 +7,29 @@ class WhitelistIPPermission(permissions.BasePermission):
     """
     Permission check for whitelisted IPs.
     """
-    DEFAULT_WHITELISTED_IPS = ['159.69.72.82', '138.201.23.91',
-                               '94.130.129.237']
+    DEFAULT_WHITELISTED_IPS = ['159.69.72.82', '138.201.23.91', '94.130.129.237']
+
+    def get_whitelisted_ips(self):
+        return getattr(settings, 'LOKALISE_IP_ADDRESSES', self.DEFAULT_WHITELISTED_IPS)
+
+    def get_ip(self, request):
+        ip_addr, _ = get_client_ip(request)
+        return ip_addr
 
     def has_permission(self, request, view):
-        ip_addr, _ = get_client_ip(request)
+        whitelisted_ips = self.get_whitelisted_ips()
 
-        whitelisted_ips = getattr(settings, 'LOKALISE_IP_ADDRESSES',
-                                  self.DEFAULT_WHITELISTED_IPS)
         if whitelisted_ips == '*':
             return True
-        return ip_addr in whitelisted_ips
+
+        return self.get_ip(request) in whitelisted_ips
 
 
 class LokalisePermission(permissions.BasePermission):
     """
     Permission check for secret header.
     """
+
     def has_permission(self, request, view):
         x_secret = request.META.get('HTTP_X_SECRET', None)
 
